@@ -1,0 +1,46 @@
+import { FEEDBACK } from "../../../backend/constants/aiPrompts";
+import OpenAI from "openai";
+import { NextResponse } from "next/server";
+
+export async function POST(req) {
+  const { conversation, interview_id, user_email, call_id, companyDetails } =
+    await req.json();
+  // Prepend company details to the conversation prompt if available
+  const companyPrefix = companyDetails
+    ? `Company Details:\n${companyDetails}\n\n`
+    : "";
+
+  const FINAL_PROMPT =
+    companyPrefix +
+    FEEDBACK.replace("{{conversation}}", JSON.stringify(conversation));
+
+  const openai = new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: process.env.OPENROUTER_API_KEY,
+  });
+
+  const completion = await openai.chat.completions.create({
+    // model: "google/gemini-2.0-flash-exp:free",
+    model: "google/gemini-2.0-flash-001", //paid model
+    // model: "deepseek/deepseek-r1-0528:free",
+    // model: "openrouter/cypher-alpha:free",
+    messages: [{ role: "user", content: FINAL_PROMPT }],
+  });
+
+  if (!completion?.choices?.[0]?.message) {
+    throw new Error("Invalid response structure from AI model");
+  }
+  // console.log(completion.choices[0].message);
+
+  // Return both the AI feedback and the original data for saving
+  return NextResponse.json(
+    {
+      ...completion.choices[0].message,
+      call_id: call_id,
+      interview_id: interview_id,
+      user_email: user_email,
+      transcript: conversation,
+    },
+    { status: 200 }
+  );
+}
