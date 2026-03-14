@@ -33,6 +33,11 @@ function InterviewCard({ interview, viewDetail = false }) {
     <CardContainer className="inter-var  ">
       {/* className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-14" */}
       <CardBody className="bg-gray-50 isolation: isolate relative group/card  dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] dark:bg-black dark:border-white/[0.2] border-black/[0.1] sm:w-[20rem] h-auto rounded-xl p-4 border  ">
+        {interview?.companyName && (
+          <div className="absolute top-0 right-0 bg-black text-white text-xs font-semibold px-3 py-1.5 rounded-tr-xl rounded-bl-xl z-10">
+            {interview.companyName}
+          </div>
+        )}
         <div>
           <CardItem
             translateZ="50"

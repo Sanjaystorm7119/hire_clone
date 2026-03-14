@@ -9,7 +9,7 @@ export async function POST(req) {
     if (!jobPosition || !jobDescription || !companyDetails) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -43,7 +43,7 @@ Return only the summary text. Do not include any other formatting or explanation
     });
 
     const completion = await openai.chat.completions.create({
-      model: "google/gemini-2.0-flash-001",
+      model: "google/gemini-2.5-flash",
       messages: [{ role: "user", content: COMPANY_SUMMARY_PROMPT }],
     });
 

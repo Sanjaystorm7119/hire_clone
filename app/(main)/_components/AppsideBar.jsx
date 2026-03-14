@@ -37,7 +37,7 @@ export default function AppSidebar() {
           {/* <p className="font-bold">Welcome, {user.firstName || "User"}</p>   */}
           <div>
             <h3 className="font-bold">Eva,</h3>
-            <h3 className="font-bold">by stelleHire</h3>
+            {/* <h3 className="font-bold">by stelleHire</h3> */}
           </div>
         </div>
         <Link href={"/dashboard/create-interview"}>

@@ -1,6 +1,12 @@
 "use client";
 import { Input } from "../../../../../frontend/components/ui/input";
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import Textarea from "../../../../../frontend/components/ui/textarea";
 import {
   Select,
@@ -11,14 +17,33 @@ import {
 } from "../../../../../frontend/components/ui/select";
 import { InterviewTypes } from "../../../../../frontend/constants/uiConstants";
 import { Button } from "../../../../../frontend/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileUp, Loader2, X } from "lucide-react";
+import { toast } from "sonner";
+
+const DEFAULT_DURATION = "10";
+const DEFAULT_TYPES = ["Technical", "Behavioral", "Experience"];
 
 function FormContainer({ onHandleInputChange, GoToNext }) {
-  const [interviewType, setInterviewType] = useState([]);
+  const [interviewType, setInterviewType] = useState(DEFAULT_TYPES);
+  const [companyName, setCompanyName] = useState("");
   const [jobPosition, setJobPosition] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [companyDetails, setCompanyDetails] = useState("");
-  const [duration, setDuration] = useState(""); // Add duration state
+  const [duration, setDuration] = useState(DEFAULT_DURATION);
+
+  // File upload state
+  const [fileName, setFileName] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Propagate defaults to parent on mount
+  useEffect(() => {
+    if (onHandleInputChange) {
+      onHandleInputChange("duration", DEFAULT_DURATION);
+      onHandleInputChange("type", DEFAULT_TYPES);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Stable debounce function using useCallback
   const createDebounce = useCallback((func, delay) => {
@@ -30,12 +55,18 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
   }, []);
 
   // Memoized debounced handlers
+  const debouncedCompanyNameChange = useMemo(
+    () =>
+      createDebounce((value) => {
+        if (onHandleInputChange) onHandleInputChange("companyName", value);
+      }, 400),
+    [onHandleInputChange, createDebounce]
+  );
+
   const debouncedJobPositionChange = useMemo(
     () =>
       createDebounce((value) => {
-        if (onHandleInputChange) {
-          onHandleInputChange("jobPosition", value);
-        }
+        if (onHandleInputChange) onHandleInputChange("jobPosition", value);
       }, 600),
     [onHandleInputChange, createDebounce]
   );
@@ -43,9 +74,7 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
   const debouncedJobDescriptionChange = useMemo(
     () =>
       createDebounce((value) => {
-        if (onHandleInputChange) {
-          onHandleInputChange("jobDescription", value);
-        }
+        if (onHandleInputChange) onHandleInputChange("jobDescription", value);
       }, 300),
     [onHandleInputChange, createDebounce]
   );
@@ -53,21 +82,29 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
   const debouncedCompanyDetailsChange = useMemo(
     () =>
       createDebounce((value) => {
-        if (onHandleInputChange) {
-          onHandleInputChange("companyDetails", value);
-        }
+        if (onHandleInputChange) onHandleInputChange("companyDetails", value);
       }, 400),
     [onHandleInputChange, createDebounce]
   );
 
-  // Handle interview type changes with proper condition check
+  // Sync interview type changes to parent
   useEffect(() => {
     if (interviewType.length > 0 && onHandleInputChange) {
       onHandleInputChange("type", interviewType);
     }
   }, [interviewType, onHandleInputChange]);
 
-  // Memoized event handlers
+  // ── Input handlers ────────────────────────────────────────────────────────
+
+  const handleCompanyNameChange = useCallback(
+    (event) => {
+      const value = event.target.value;
+      setCompanyName(value);
+      debouncedCompanyNameChange(value);
+    },
+    [debouncedCompanyNameChange]
+  );
+
   const handleJobPositionChange = useCallback(
     (event) => {
       const value = event.target.value;
@@ -95,39 +132,104 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
     [debouncedCompanyDetailsChange]
   );
 
-  // Fixed duration handler with local state
   const handleDurationChange = useCallback(
     (value) => {
-      setDuration(value); // Update local state first
-      if (onHandleInputChange) {
-        onHandleInputChange("duration", value);
-      }
+      setDuration(value);
+      if (onHandleInputChange) onHandleInputChange("duration", value);
     },
     [onHandleInputChange]
   );
 
   const AddInterviewType = useCallback((type) => {
-    setInterviewType((prev) => {
-      const isIncluded = prev.includes(type);
-      if (!isIncluded) {
-        return [...prev, type];
-      } else {
-        return prev.filter((item) => item !== type);
-      }
-    });
+    setInterviewType((prev) =>
+      prev.includes(type) ? prev.filter((item) => item !== type) : [...prev, type]
+    );
   }, []);
 
-  // Memoize interview type buttons
+  // ── File upload ───────────────────────────────────────────────────────────
+
+  const handleFileChange = useCallback(
+    async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const isPdf = file.type === "application/pdf";
+      const isDocx =
+        file.type ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        file.name.toLowerCase().endsWith(".docx") ||
+        file.name.toLowerCase().endsWith(".doc");
+
+      if (!isPdf && !isDocx) {
+        toast.error("Please upload a PDF or Word (.docx) file");
+        return;
+      }
+
+      setFileName(file.name);
+      setUploading(true);
+
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/parse-document", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          toast.error(data.error || "Failed to parse document");
+          return;
+        }
+
+        // Populate fields with extracted data
+        if (data.company_name) {
+          setCompanyName(data.company_name);
+          onHandleInputChange?.("companyName", data.company_name);
+        }
+        if (data.company_details) {
+          setCompanyDetails(data.company_details);
+          onHandleInputChange?.("companyDetails", data.company_details);
+        }
+        if (data.job_position) {
+          setJobPosition(data.job_position);
+          onHandleInputChange?.("jobPosition", data.job_position);
+        }
+        if (data.job_description) {
+          setJobDescription(data.job_description);
+          onHandleInputChange?.("jobDescription", data.job_description);
+        }
+
+        toast.success("Document parsed — fields have been filled in");
+      } catch (err) {
+        console.error("File parse error:", err);
+        toast.error("Failed to parse document. Please try again.");
+      } finally {
+        setUploading(false);
+        // Reset input so the same file can be re-uploaded if needed
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    },
+    [onHandleInputChange]
+  );
+
+  const clearFile = useCallback(() => {
+    setFileName("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, []);
+
+  // ── Interview type buttons ────────────────────────────────────────────────
+
   const interviewTypeButtons = useMemo(
     () =>
       InterviewTypes.map((type, index) => (
         <div
           key={index}
-          className={`flex items-center cursor-pointer
-         hover:bg-secondary gap-2 p-1 px-2 border border-gray-200
-         bg-white rounded-2xl ${
-           interviewType.includes(type.title) && "bg-blue-50 text-primary"
-         }`}
+          className={`flex items-center cursor-pointer hover:bg-secondary gap-2 p-1 px-2 border border-gray-200 bg-white rounded-2xl ${
+            interviewType.includes(type.title) && "bg-blue-50 text-primary"
+          }`}
           onClick={() => AddInterviewType(type.title)}
         >
           <type.icons />
@@ -137,11 +239,65 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
     [interviewType, AddInterviewType]
   );
 
+  // ── Render ────────────────────────────────────────────────────────────────
+
   return (
     <div>
-      <div className="mx-2">
+      <div className="mx-2 space-y-3">
+
+        {/* File upload section */}
         <div>
-          <h2 className="text-sm font-medium ">Company Details</h2>
+          <h2 className="text-sm font-medium mb-1">
+            Auto-fill from Resume / JD
+          </h2>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          {fileName ? (
+            <div className="flex items-center gap-2 px-3 py-2 border border-blue-200 bg-blue-50 rounded-lg text-sm">
+              {uploading ? (
+                <Loader2 className="h-4 w-4 text-blue-600 animate-spin shrink-0" />
+              ) : (
+                <FileUp className="h-4 w-4 text-blue-600 shrink-0" />
+              )}
+              <span className="truncate text-blue-800 flex-1">{fileName}</span>
+              {uploading ? (
+                <span className="text-blue-600 text-xs shrink-0">Parsing…</span>
+              ) : (
+                <button onClick={clearFile} className="text-gray-400 hover:text-gray-600">
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            >
+              <FileUp className="h-4 w-4" />
+              Upload PDF or Word document to auto-fill fields
+            </button>
+          )}
+        </div>
+
+        <div>
+          <h2 className="text-sm font-medium">Company Name</h2>
+          <Input
+            placeholder="e.g. HireEva Inc."
+            required
+            className="mt-2"
+            value={companyName}
+            onChange={handleCompanyNameChange}
+          />
+        </div>
+
+        <div>
+          <h2 className="text-sm font-medium">Company Details</h2>
           <Input
             placeholder="HireEva - Your interviewing Partner"
             required
@@ -150,8 +306,9 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
             onChange={handleCompanyDetailsChange}
           />
         </div>
+
         <div>
-          <h2 className="text-sm font-medium mt-2">Job Position</h2>
+          <h2 className="text-sm font-medium">Job Position</h2>
           <Input
             placeholder="Frontend Developer"
             required
@@ -161,7 +318,7 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
           />
         </div>
 
-        <div className="mt-2">
+        <div>
           <h2 className="text-sm font-medium">Job Description</h2>
           <Textarea
             placeholder="Enter job description"
@@ -172,11 +329,11 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
           />
         </div>
 
-        <div className="mt-2">
+        <div>
           <h2 className="text-sm font-medium">Duration</h2>
           <Select value={duration} onValueChange={handleDurationChange}>
             <SelectTrigger className="w-full mt-2">
-              <SelectValue placeholder="select Duration" />
+              <SelectValue placeholder="Select Duration" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="5">5 Mins</SelectItem>
@@ -196,7 +353,7 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
       </div>
 
       <div className="flex justify-end" onClick={() => GoToNext()}>
-        <Button className="mt-2">
+        <Button className="mt-3">
           Next <ArrowRight />
         </Button>
       </div>

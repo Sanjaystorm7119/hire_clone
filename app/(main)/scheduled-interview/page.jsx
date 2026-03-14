@@ -1,10 +1,20 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "../../../lib/supabase";
 import { useUser } from "@clerk/nextjs";
 import InterviewCard from "../dashboard/_components/InterviewCard";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Loader, Plus, Video, AlertCircle, RefreshCw } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader,
+  Plus,
+  Video,
+  AlertCircle,
+  RefreshCw,
+  Search,
+  X,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 const PAGE_SIZE = 6;
@@ -18,15 +28,41 @@ function ScheduledInterview() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
+  // Filter state
+  const [filterBy, setFilterBy] = useState("jobPosition");
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef(null);
+  const debounceRef = useRef(null);
+
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  // Debounce search — no state on every keystroke, input is uncontrolled
+  const handleSearchChange = useCallback(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(searchInputRef.current?.value ?? "");
+      setCurrentPage(1);
+    }, 350);
+  }, []);
+
+  const clearSearch = useCallback(() => {
+    if (searchInputRef.current) searchInputRef.current.value = "";
+    setSearchQuery("");
+    setCurrentPage(1);
+  }, []);
+
+  const handleFilterByChange = useCallback((e) => {
+    setFilterBy(e.target.value);
+    setCurrentPage(1);
+  }, []);
 
   useEffect(() => {
     if (user) {
-      GetInterviewList(currentPage);
+      GetInterviewList(currentPage, searchQuery, filterBy);
     }
-  }, [user, currentPage]);
+  }, [user, currentPage, searchQuery, filterBy]);
 
-  const GetInterviewList = async (page) => {
+  const GetInterviewList = async (page, query, field) => {
     try {
       setLoading(true);
       setError(null);
@@ -34,12 +70,13 @@ function ScheduledInterview() {
       const from = (page - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      const { data, error, count } = await supabase
+      let q = supabase
         .from("interviews")
         .select(
           `
           jobPosition,
           jobDescription,
+          companyName,
           duration,
           interviewId,
           created_at,
@@ -50,6 +87,12 @@ function ScheduledInterview() {
         .eq("userEmail", user.emailAddresses[0]?.emailAddress)
         .order("id", { ascending: false })
         .range(from, to);
+
+      if (query?.trim()) {
+        q = q.ilike(field, `%${query.trim()}%`);
+      }
+
+      const { data, error, count } = await q;
 
       if (error) {
         console.error("Supabase error:", error);
@@ -190,7 +233,7 @@ function ScheduledInterview() {
             <motion.button
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => GetInterviewList(currentPage)}
+              onClick={() => GetInterviewList(currentPage, searchQuery, filterBy)}
               className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 group"
             >
               <motion.div
@@ -215,16 +258,59 @@ function ScheduledInterview() {
       transition={{ duration: 0.5 }}
       className="mt-4"
     >
-      <motion.h2
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-        className="font-bold text-2xl mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-      >
-        Interview List with Candidate Feedback
-      </motion.h2>
+      {/* Header row */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <motion.h2
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="font-bold text-2xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+        >
+          Interview List with Candidate Feedback
+        </motion.h2>
 
-      {totalCount === 0 && (
+        {/* Filter controls */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="flex items-center gap-2"
+        >
+          <select
+            value={filterBy}
+            onChange={handleFilterByChange}
+            className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
+          >
+            <option value="jobPosition">Job Position</option>
+            <option value="companyName">Company Name</option>
+          </select>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              onChange={handleSearchChange}
+              placeholder={
+                filterBy === "companyName"
+                  ? "Search company…"
+                  : "Search position…"
+              }
+              className="pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg bg-white text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 w-52"
+            />
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      {totalCount === 0 && !searchQuery && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -328,6 +414,23 @@ function ScheduledInterview() {
         </motion.div>
       )}
 
+      {totalCount === 0 && searchQuery && (
+        <div className="flex flex-col items-center justify-center min-h-[300px] text-gray-500">
+          <Search className="w-12 h-12 mb-3 text-gray-300" />
+          <p className="text-lg font-medium">No results found</p>
+          <p className="text-sm mt-1">
+            No interviews match &quot;{searchQuery}&quot; in{" "}
+            {filterBy === "companyName" ? "company name" : "job position"}.
+          </p>
+          <button
+            onClick={clearSearch}
+            className="mt-4 text-sm text-blue-600 hover:underline"
+          >
+            Clear filter
+          </button>
+        </div>
+      )}
+
       {totalCount > 0 && (
         <>
           <motion.div
@@ -388,7 +491,9 @@ function ScheduledInterview() {
           )}
 
           <p className="text-center text-sm text-gray-400 mt-3">
-            Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, totalCount)} of {totalCount} interviews
+            Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+            {Math.min(currentPage * PAGE_SIZE, totalCount)} of {totalCount}{" "}
+            {searchQuery ? "matching " : ""}interviews
           </p>
         </>
       )}
