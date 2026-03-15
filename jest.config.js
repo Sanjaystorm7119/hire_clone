@@ -1,7 +1,7 @@
 module.exports = {
   testEnvironment: "jsdom",
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
-  testPathIgnorePatterns: ["<rootDir>/.next/", "<rootDir>/node_modules/"],
+  testPathIgnorePatterns: ["<rootDir>/.next/", "<rootDir>/node_modules/", "<rootDir>/everything-claude-code/", "<rootDir>/tests/"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",

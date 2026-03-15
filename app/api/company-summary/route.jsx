@@ -1,8 +1,15 @@
+import { GEMINI_FLASH_LITE } from "../../../backend/constants/aiModels";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { jobPosition, jobDescription, companyDetails } = await req.json();
 
     // Validate required fields
@@ -43,7 +50,7 @@ Return only the summary text. Do not include any other formatting or explanation
     });
 
     const completion = await openai.chat.completions.create({
-      model: "google/gemini-2.5-flash",
+      model: GEMINI_FLASH_LITE,
       messages: [{ role: "user", content: COMPANY_SUMMARY_PROMPT }],
     });
 
@@ -55,7 +62,7 @@ Return only the summary text. Do not include any other formatting or explanation
 
     return NextResponse.json({ summary }, { status: 200 });
   } catch (e) {
-    console.error("Company Summary API Error:", e);
+    // console.error("Company Summary API Error:", e);
     return NextResponse.json({ error: e.message }, { status: e.status || 500 });
   }
 }

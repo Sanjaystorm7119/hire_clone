@@ -1,8 +1,8 @@
+import { GEMMA_3N } from "../../../backend/constants/aiModels";
 import { NextResponse } from "next/server";
 import mammoth from "mammoth";
 import OpenAI from "openai";
-
-const MODEL = "google/gemma-3n-e2b-it:free";
+import { auth } from "@clerk/nextjs/server";
 
 const EXTRACT_PROMPT = `Extract the following information from this document and return ONLY valid JSON with no markdown fences or extra text:
 {
@@ -15,6 +15,11 @@ If a field cannot be determined from the document, use an empty string for that 
 
 export async function POST(req) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const file = formData.get("file");
 
@@ -70,7 +75,7 @@ export async function POST(req) {
     });
 
     const completion = await openai.chat.completions.create({
-      model: MODEL,
+      model: GEMMA_3N,
       messages: [{ role: "user", content: messageContent }],
     });
 

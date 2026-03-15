@@ -20,9 +20,13 @@ import Link from "next/link";
 function InterviewCard({ interview, viewDetail = false }) {
   const url = process.env.NEXT_PUBLIC_HOST_URL + "/" + interview?.interviewId;
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(url);
-    toast("Copied");
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast("Copied");
+    } catch {
+      toast("Unable to copy — please copy the link manually.");
+    }
   };
   const { user } = useUser();
   const onSend = () => {

@@ -3,6 +3,8 @@ import {
   BriefcaseBusiness,
   Calendar,
   Code2Icon,
+  FileText,
+  GitCompare,
   LayoutDashboard,
   List,
   Puzzle,
@@ -16,6 +18,9 @@ export const SidebarOptions = [
   { name: "DashBoard", icon: LayoutDashboard, path: "/dashboard" },
   { name: "Scheduled Interview", icon: Calendar, path: "/scheduled-interview" },
   { name: "All Interviews", icon: List, path: "/all-interview" },
+  { name: "Resume Bank", icon: FileText, path: "/resume-bank" },
+  { name: "Job Details Bank", icon: BriefcaseBusiness, path: "/job-details-bank" },
+  { name: "Resume Matcher", icon: GitCompare, path: "/resume-matcher" },
   { name: "Settings", icon: Settings, path: "/settings" },
 ];
 

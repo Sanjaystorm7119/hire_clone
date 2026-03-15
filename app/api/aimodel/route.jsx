@@ -1,9 +1,16 @@
 import { QUESTIONS_PROMPT } from "../../../backend/constants/aiPrompts";
+import { GEMINI_FLASH_LITE } from "../../../backend/constants/aiModels";
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { jobPosition, jobDescription, duration, type, companyDetails } =
       await req.json();
 
@@ -29,7 +36,7 @@ export async function POST(req) {
     });
 
     const completion = await openai.chat.completions.create({
-      model: "google/gemini-2.0-flash-001", //paid
+      model: GEMINI_FLASH_LITE,
       // model: "google/gemini-2.0-flash-exp:free",
       // model: "deepseek/deepseek-r1-0528-qwen3-8b:free",
       // model: "tngtech/deepseek-r1t2-chimera:free",

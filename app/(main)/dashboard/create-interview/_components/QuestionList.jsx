@@ -146,8 +146,15 @@ function QuestionList({ formData, onCreateInterviewLink }) {
         ...formData,
       });
       const Content = result.data.content;
-      const final_content = Content.replace("```json", "").replace("```", "");
-      const questions = JSON.parse(final_content)?.interviewQuestions || [];
+      const final_content = Content.replace("```json", "").replace("```", "").trim();
+      let questions = [];
+      try {
+        questions = JSON.parse(final_content)?.interviewQuestions || [];
+      } catch {
+        toast("Failed to parse AI response. Please try again.");
+        setLoading(false);
+        return;
+      }
 
       // Add unique IDs to questions for drag and drop
       const questionsWithIds = questions.map((q) => ({
@@ -158,8 +165,7 @@ function QuestionList({ formData, onCreateInterviewLink }) {
       setQuestionList(questionsWithIds);
       setLoading(false);
     } catch (e) {
-      console.error(e);
-      toast("server error, try again");
+      toast("Server error, please try again.");
       setLoading(false);
     }
   };
@@ -226,7 +232,6 @@ function QuestionList({ formData, onCreateInterviewLink }) {
       setHasUnsavedChanges(false);
       toast("Question order saved successfully");
     } catch (error) {
-      console.error(error);
       toast("Error saving question order");
     } finally {
       setUpdateLoading(false);
@@ -278,15 +283,21 @@ function QuestionList({ formData, onCreateInterviewLink }) {
         throw error;
       }
 
-      // Update credits
-      const userUpdate = await supabase
+      // Update credits — fetch current value first, then decrement
+      const userEmail = user?.primaryEmailAddress?.emailAddress;
+      const { data: userData } = await supabase
         .from("Users")
-        .update({ credits: Number(user.Credits) - 1 })
-        .eq("email", user?.userEmail)
-        .select();
+        .select("credits")
+        .eq("email", userEmail)
+        .single();
 
-      if (userUpdate.error) {
-        throw userUpdate.error;
+      const { error: creditError } = await supabase
+        .from("Users")
+        .update({ credits: Math.max(0, (userData?.credits ?? 1) - 1) })
+        .eq("email", userEmail);
+
+      if (creditError) {
+        throw creditError;
       }
 
       setInterviewId(newInterviewId);
@@ -294,7 +305,6 @@ function QuestionList({ formData, onCreateInterviewLink }) {
       toast("Interview created successfully");
       onCreateInterviewLink(newInterviewId);
     } catch (error) {
-      console.error(error);
       toast("Error creating interview. Please try again.");
     } finally {
       setSaveLoading(false);

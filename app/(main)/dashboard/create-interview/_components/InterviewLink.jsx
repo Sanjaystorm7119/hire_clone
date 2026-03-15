@@ -19,15 +19,24 @@ import { supabase } from "../../../../../lib/supabase";
 function InterviewLink({ interviewId, formData }) {
   const [questionCount, setQuestionCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const url = `${process.env.NEXT_PUBLIC_HOST_URL}/${interviewId}`;
+  const hostUrl = process.env.NEXT_PUBLIC_HOST_URL ?? "";
+  const url = hostUrl ? `${hostUrl}/${interviewId}` : "";
 
   const GetInterviewURL = () => {
     return url;
   };
 
   const onCopyLink = async () => {
-    await navigator.clipboard.writeText(url);
-    toast("Copied");
+    if (!url) {
+      toast("Interview URL is not configured.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast("Copied");
+    } catch {
+      toast("Unable to copy — please copy the link manually.");
+    }
   };
 
   const fetchQuestionCount = async () => {

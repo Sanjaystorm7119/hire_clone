@@ -1,0 +1,362 @@
+<testsuites id="" name="" tests="60" failures="0" skipped="60" errors="0" time="0.33734500000000023">
+<testsuite name="auth\landing-page.spec.ts" timestamp="2026-03-15T08:09:41.863Z" hostname="chromium" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Landing / Auth Page › renders hero section with sign-in and sign-up links" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › root path redirects to /auth" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › clicking sign-in navigates to sign-in page" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › unauthenticated access to dashboard redirects to sign-in" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › unauthenticated access to scheduled-interview redirects to sign-in" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="dashboard\create-interview.spec.ts" timestamp="2026-03-15T08:09:41.863Z" hostname="chromium" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Recruiter Dashboard — Create Interview Flow › dashboard loads and shows welcome message" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Recruiter Dashboard — Create Interview Flow › create interview step 1 — fill job details form" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Recruiter Dashboard — Create Interview Flow › create interview step 2 — generates questions" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Recruiter Dashboard — Create Interview Flow › create interview step 3 — shows shareable link" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Scheduled Interviews Page › loads interview list" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Scheduled Interviews Page › search filters interviews by position" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="interview\candidate-flow.spec.ts" timestamp="2026-03-15T08:09:41.863Z" hostname="chromium" tests="4" failures="0" skipped="4" time="0" errors="0">
+<testcase name="Candidate Interview Flow › join page loads and shows interview details" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Candidate Interview Flow › start page redirects unauthenticated users" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Candidate Interview Flow › completed page is accessible after interview" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Candidate Interview Flow › invalid interview ID shows not-found or error state" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="auth\landing-page.spec.ts" timestamp="2026-03-15T08:09:41.863Z" hostname="firefox" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Landing / Auth Page › renders hero section with sign-in and sign-up links" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › root path redirects to /auth" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › clicking sign-in navigates to sign-in page" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › unauthenticated access to dashboard redirects to sign-in" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › unauthenticated access to scheduled-interview redirects to sign-in" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="dashboard\create-interview.spec.ts" timestamp="2026-03-15T08:09:41.863Z" hostname="firefox" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Recruiter Dashboard — Create Interview Flow › dashboard loads and shows welcome message" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Recruiter Dashboard — Create Interview Flow › create interview step 1 — fill job details form" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Recruiter Dashboard — Create Interview Flow › create interview step 2 — generates questions" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Recruiter Dashboard — Create Interview Flow › create interview step 3 — shows shareable link" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Scheduled Interviews Page › loads interview list" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Scheduled Interviews Page › search filters interviews by position" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="interview\candidate-flow.spec.ts" timestamp="2026-03-15T08:09:41.863Z" hostname="firefox" tests="4" failures="0" skipped="4" time="0" errors="0">
+<testcase name="Candidate Interview Flow › join page loads and shows interview details" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Candidate Interview Flow › start page redirects unauthenticated users" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Candidate Interview Flow › completed page is accessible after interview" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Candidate Interview Flow › invalid interview ID shows not-found or error state" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="auth\landing-page.spec.ts" timestamp="2026-03-15T08:09:41.863Z" hostname="webkit" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Landing / Auth Page › renders hero section with sign-in and sign-up links" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › root path redirects to /auth" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › clicking sign-in navigates to sign-in page" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › unauthenticated access to dashboard redirects to sign-in" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › unauthenticated access to scheduled-interview redirects to sign-in" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="dashboard\create-interview.spec.ts" timestamp="2026-03-15T08:09:41.863Z" hostname="webkit" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Recruiter Dashboard — Create Interview Flow › dashboard loads and shows welcome message" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Recruiter Dashboard — Create Interview Flow › create interview step 1 — fill job details form" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Recruiter Dashboard — Create Interview Flow › create interview step 2 — generates questions" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Recruiter Dashboard — Create Interview Flow › create interview step 3 — shows shareable link" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Scheduled Interviews Page › loads interview list" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Scheduled Interviews Page › search filters interviews by position" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="interview\candidate-flow.spec.ts" timestamp="2026-03-15T08:09:41.863Z" hostname="webkit" tests="4" failures="0" skipped="4" time="0" errors="0">
+<testcase name="Candidate Interview Flow › join page loads and shows interview details" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Candidate Interview Flow › start page redirects unauthenticated users" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Candidate Interview Flow › completed page is accessible after interview" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Candidate Interview Flow › invalid interview ID shows not-found or error state" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="auth\landing-page.spec.ts" timestamp="2026-03-15T08:09:41.863Z" hostname="mobile-chrome" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Landing / Auth Page › renders hero section with sign-in and sign-up links" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › root path redirects to /auth" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › clicking sign-in navigates to sign-in page" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › unauthenticated access to dashboard redirects to sign-in" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Landing / Auth Page › unauthenticated access to scheduled-interview redirects to sign-in" classname="auth\landing-page.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="dashboard\create-interview.spec.ts" timestamp="2026-03-15T08:09:41.863Z" hostname="mobile-chrome" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Recruiter Dashboard — Create Interview Flow › dashboard loads and shows welcome message" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Recruiter Dashboard — Create Interview Flow › create interview step 1 — fill job details form" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Recruiter Dashboard — Create Interview Flow › create interview step 2 — generates questions" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Recruiter Dashboard — Create Interview Flow › create interview step 3 — shows shareable link" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Scheduled Interviews Page › loads interview list" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Scheduled Interviews Page › search filters interviews by position" classname="dashboard\create-interview.spec.ts" time="0">
+<properties>
+<property name="skip" value="Requires PLAYWRIGHT_AUTH_FILE with authenticated session">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="interview\candidate-flow.spec.ts" timestamp="2026-03-15T08:09:41.863Z" hostname="mobile-chrome" tests="4" failures="0" skipped="4" time="0" errors="0">
+<testcase name="Candidate Interview Flow › join page loads and shows interview details" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Candidate Interview Flow › start page redirects unauthenticated users" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Candidate Interview Flow › completed page is accessible after interview" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Candidate Interview Flow › invalid interview ID shows not-found or error state" classname="interview\candidate-flow.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>

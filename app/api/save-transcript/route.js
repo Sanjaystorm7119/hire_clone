@@ -1,10 +1,23 @@
 import { NextResponse } from "next/server";
 import { supabase } from "../../../lib/supabase";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req) {
-  const { callId, interviewId, userEmail } = await req.json();
-
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { callId, interviewId, userEmail } = await req.json();
+
+    if (!callId || !interviewId || !userEmail) {
+      return NextResponse.json(
+        { error: "Missing required fields: callId, interviewId, userEmail" },
+        { status: 400 }
+      );
+    }
+
     // Fetch transcript from Vapi
     const vapiResponse = await fetch(
       `https://api.vapi.ai/v1/calls/${callId}/transcript`,
@@ -16,7 +29,6 @@ export async function POST(req) {
     );
 
     const vapiData = await vapiResponse.json();
-    // console.log("Vapi transcript API response:", vapiData);
 
     // Transform Vapi log to UI transcript format and filter out system messages
     let transcript = [];
@@ -43,15 +55,9 @@ export async function POST(req) {
         .filter(Boolean);
     }
 
-    if (transcript.length === 0) {
-      transcript = [];
-    }
-
-    // **KEY FIX: Explicitly stringify the transcript to JSON**
     const transcriptJson = JSON.stringify(transcript);
 
-    // Save transcript to interview-feedback table instead of interviews table
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("interview-feedback")
       .update({
         transcript: transcriptJson,
@@ -61,7 +67,6 @@ export async function POST(req) {
       .eq("userEmail", userEmail);
 
     if (error) {
-      console.error("Error updating interview-feedback:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -70,7 +75,6 @@ export async function POST(req) {
       message: "Transcript saved successfully",
     });
   } catch (error) {
-    console.error("Error saving transcript:", error);
     return NextResponse.json(
       { error: "Failed to save transcript" },
       { status: 500 }
