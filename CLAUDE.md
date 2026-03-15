@@ -44,7 +44,9 @@ hireAva_1-main/
 │   │   ├── ai-feedback/route.jsx          #   Generates candidate feedback ratings
 │   │   ├── company-summary/route.jsx      #   Generates company intro for Vapi
 │   │   ├── save-transcript/route.js       #   Fetches & saves Vapi transcript to Supabase
-│   │   ├── parse-document/route.js        #   Extracts job info from PDF/DOCX via LLM
+│   │   ├── parse-document/route.js        #   Extracts job info from PDF/DOCX via LLM (max 2 MB)
+│   │   ├── parse-resume/route.js          #   Extracts candidate info from PDF/DOCX via LLM (max 2 MB)
+│   │   ├── resume-match/route.js          #   AI resume-to-JD match scoring; saves to candidate_job_matches
 │   │   └── users/route.tsx               #   Syncs Clerk user to Supabase Users table
 │   ├── (auth)/                             # ← FRONTEND: Clerk sign-in/sign-up pages
 │   │   ├── sign-in/[[...sign-in]]/page.jsx
@@ -78,6 +80,9 @@ hireAva_1-main/
 │   │   │   ├── CandidateTranscriptDialogBox.js
 │   │   │   └── InterviewdetailContainer.jsx
 │   │   ├── all-interview/page.jsx
+│   │   ├── resume-bank/page.jsx           #   Upload & browse candidate resumes
+│   │   ├── job-details-bank/page.jsx      #   Upload & browse job descriptions
+│   │   ├── resume-matcher/page.jsx        #   AI resume-to-JD match scoring UI
 │   │   └── settings/page.jsx
 │   ├── interview/                          # ← FRONTEND: Candidate-facing interview flow
 │   │   ├── layout.jsx
@@ -113,9 +118,7 @@ hireAva_1-main/
 │   │   ├── sheet.jsx / sidebar.jsx / tabs.jsx / tooltip.jsx
 │   │   └── sonner.jsx                     # Toast notification wrapper
 │   ├── context/
-│   │   ├── InterviewDataContext.jsx        # Interview data through interview flow
-│   │   ├── userDetailsContext.jsx          # Current user info
-│   │   └── theme.js                        # Purple-dark theme (primary: #667eea→#764ba2)
+│   │   └── InterviewDataContext.jsx        # Interview data through interview flow
 │   ├── hooks/
 │   │   └── use-mobile.js                   # useIsMobile() — viewport <= 767px
 │   ├── lib/
@@ -124,7 +127,8 @@ hireAva_1-main/
 │       └── uiConstants.js                  # SidebarOptions, InterviewTypes, interviewPrompt()
 ├── backend/                                # Backend-only support files
 │   └── constants/
-│       └── aiPrompts.js                    # QUESTIONS_PROMPT, FEEDBACK prompt templates
+│       ├── aiPrompts.js                    # QUESTIONS_PROMPT, FEEDBACK prompt templates
+│       └── aiModels.js                     # Centralized AI model ID constants
 ├── lib/
 │   ├── supabase.jsx                        # Shared Supabase anon client
 │   └── utils.js                            # cn() utility (duplicate of frontend/lib/utils.js)
@@ -153,31 +157,43 @@ All existing `app/` files use relative paths to reach `frontend/` or `backend/`.
 
 ## Architecture Overview
 
-**HireEva** is an AI-powered interview platform. Recruiters create sessions; candidates are interviewed by a voice AI ("Eva"); AI generates structured feedback.
+**HireEva** is an AI-powered interview platform. Recruiters create sessions; candidates are interviewed by a voice AI ("Eva"); AI generates structured feedback. A separate **resume/JD matching subsystem** lets recruiters upload resumes and job descriptions and score them against each other.
 
 ### Interview Lifecycle
 
 1. **Create** (`/dashboard/create-interview`) — 3-step wizard:
    - Step 1 (`FormContainer`): Job position, description, duration, type, company details. Supports PDF/DOCX upload via `POST /api/parse-document` (mammoth for DOCX, base64 for PDF → Gemma 3n extracts fields).
-   - Step 2 (`QuestionList`): Calls `POST /api/aimodel` → OpenRouter → Gemini 2.0 Flash generates one question per minute of duration; drag-and-drop reorder via `@dnd-kit`.
+   - Step 2 (`QuestionList`): Calls `POST /api/aimodel` → OpenRouter → Gemini 2.5 Flash Lite generates one question per minute of duration; drag-and-drop reorder via `@dnd-kit`.
    - Step 3 (`InterviewLink`): Shareable candidate link saved to Supabase `interviews` table with unique `interviewId`.
 
 2. **Conduct** (`/interview/[interview_id]/start`) — Candidate joins; `@vapi-ai/web` powers a live voice session with the "Eva" AI persona using the pre-generated questions (`interviewPrompt()` from `frontend/constants/uiConstants.js`). Timer counts down, mic controls shown. On end: `POST /api/save-transcript`.
 
-3. **Feedback** (`/interview/[interview_id]/completed`) — Transcript sent to `POST /api/ai-feedback`; Gemini 2.0 Flash returns ratings (1–10) for technical skills, communication, problem-solving, experience, and overall, plus a hire/no-hire recommendation. Saved to Supabase `interview-feedback` table.
+3. **Feedback** (`/interview/[interview_id]/completed`) — Transcript sent to `POST /api/ai-feedback`; Gemini 2.5 Flash returns ratings (1–10) for technical skills, communication, problem-solving, experience, and overall, plus a hire/no-hire recommendation. Saved to Supabase `interview-feedback` table.
 
 4. **Review** (`/scheduled-interview/[interview_id]/details`) — Recruiter views all candidates, transcripts (`CandidateTranscriptDialogBox`), and AI feedback (`CandidateFeedbackDialogBox`). `CandidateList` has a min/max rating filter (1–10).
+
+### Resume/JD Matching Subsystem
+
+1. **Resume Bank** (`/resume-bank`) — Upload PDF/DOCX resumes via `POST /api/parse-resume` (Gemma 3n extracts name, email, skills, experience, education). Stored in Supabase `resumes` table. Paginated grid (6/page) with expandable cards.
+
+2. **Job Description Bank** (`/job-details-bank`) — Upload PDF/DOCX job descriptions via `POST /api/parse-document`. Stored in Supabase `job_descriptions` table. Paginated grid with expandable previews.
+
+3. **Resume Matcher** (`/resume-matcher`) — Select a resume and a job description, then call `POST /api/resume-match`. Returns confidence score (0–100), skills/experience/semantic sub-scores, matched skills, and missing skills. Results saved to `candidate_job_matches` table and shown with color-coded confidence (≥70% green, ≥40% yellow, <40% red).
 
 ### API Routes
 
 | Route | Purpose | Model |
 |---|---|---|
-| `POST /api/aimodel` | Generate interview questions | `google/gemini-2.0-flash-001` |
-| `POST /api/ai-feedback` | Generate candidate feedback (ratings 1–10 + recommendation) | `google/gemini-2.0-flash-001` |
-| `POST /api/company-summary` | Generate company intro text for Vapi persona | `google/gemini-2.5-flash` |
+| `POST /api/aimodel` | Generate interview questions | `google/gemini-2.5-flash-lite` |
+| `POST /api/ai-feedback` | Generate candidate feedback (ratings 1–10 + recommendation) | `google/gemini-2.5-flash` |
+| `POST /api/company-summary` | Generate company intro text for Vapi persona | `google/gemini-2.5-flash-lite` |
 | `POST /api/save-transcript` | Fetch transcript from Vapi API, save to Supabase | — |
-| `POST /api/parse-document` | Extract job fields from PDF/DOCX upload | `google/gemma-3n-e2b-it:free` |
+| `POST /api/parse-document` | Extract job fields from PDF/DOCX upload (max 2 MB) | `google/gemma-3n-e2b-it:free` |
+| `POST /api/parse-resume` | Extract candidate info from PDF/DOCX resume (max 2 MB) | `google/gemma-3n-e2b-it:free` |
+| `POST /api/resume-match` | Score resume vs. job description; save to candidate_job_matches | `google/gemini-2.5-flash-lite` |
 | `POST /api/users` | Sync Clerk user to Supabase `Users` table | — |
+
+Model IDs are defined in `backend/constants/aiModels.js` — update there to change models globally.
 
 ### Page Routes
 
@@ -192,6 +208,9 @@ All existing `app/` files use relative paths to reach `frontend/` or `backend/`.
 | `/scheduled-interview` | `app/(main)/scheduled-interview/page.jsx` | Interview list (search by position/company) |
 | `/scheduled-interview/[id]/details` | `...details/page.jsx` | Candidates, transcripts, feedback |
 | `/all-interview` | `app/(main)/all-interview/page.jsx` | All interviews (paginated) |
+| `/resume-bank` | `app/(main)/resume-bank/page.jsx` | Upload & browse candidate resumes |
+| `/job-details-bank` | `app/(main)/job-details-bank/page.jsx` | Upload & browse job descriptions |
+| `/resume-matcher` | `app/(main)/resume-matcher/page.jsx` | AI resume-to-JD match scoring |
 | `/settings` | `app/(main)/settings/page.jsx` | Settings |
 | `/interview/[id]` | `app/interview/[interview_id]/page.jsx` | Candidate join/landing |
 | `/interview/[id]/start` | `app/interview/[interview_id]/start/page.jsx` | Live voice interview |
@@ -204,7 +223,7 @@ All existing `app/` files use relative paths to reach `frontend/` or `backend/`.
 |---|---|---|
 | Auth | `@clerk/nextjs` — `middleware.ts` protects all non-public routes | ^6.23.3 |
 | Database | `@supabase/supabase-js` — anon client in `lib/supabase.jsx` | ^2.50.2 |
-| AI/LLM | OpenRouter API — Gemini 2.0 Flash (questions + feedback), Gemini 2.5 Flash (company summary), Gemma 3n (doc parse) | — |
+| AI/LLM | OpenRouter API — Gemini 2.5 Flash Lite (questions, matching, company summary), Gemini 2.5 Flash (feedback), Gemma 3n (doc/resume parse) | — |
 | Voice | `@vapi-ai/web` — live interview; Eva persona prompt in `frontend/constants/uiConstants.js` | ^2.3.8 |
 | UI components | Shadcn/ui (new-york style) + Radix UI primitives in `frontend/components/ui/` | — |
 | Animations | `framer-motion` | ^12.23.0 |
@@ -218,8 +237,6 @@ All existing `app/` files use relative paths to reach `frontend/` or `backend/`.
 
 React Context only — no Redux or Zustand:
 - `frontend/context/InterviewDataContext.jsx` — passes interview data through the interview flow
-- `frontend/context/userDetailsContext.jsx` — current user info
-- `frontend/context/theme.js` — purple-dark theme (primary `#667eea → #764ba2`)
 
 ### Supabase Tables
 
@@ -228,6 +245,11 @@ React Context only — no Redux or Zustand:
 | `interviews` | `interviewId`, `userEmail`, `jobPosition`, `jobDescription`, `companyName`, `companyDetails`, `duration`, `type`, `questionList`, `created_at` | Create flow, dashboard, review |
 | `interview-feedback` | `userEmail`, `userName`, `feedback` (JSON with ratings), `transcript`, `call_id`, `created_at` | Completed interviews, review page |
 | `Users` | `clerk_user_id`, `email`, `name`, `picture`, `firstname`, `lastname`, `created_at` | Synced on every login via `app/provider.jsx` |
+| `resumes` | `id`, `userEmail`, `candidate_name`, `candidate_email`, `parsed_data` (JSON: skills, experience_summary, education, years_of_experience), `created_at` | Resume bank, resume matcher |
+| `job_descriptions` | `id`, `userEmail`, `role_title`, `raw_text`, `parsed_data` (JSON), `interview_id` (optional), `created_at` | JD bank, resume matcher |
+| `candidate_job_matches` | `id`, `userEmail`, `resume_id`, `jd_id`, `confidence_score`, `skills_score`, `experience_score`, `semantic_score`, `matched_skills`, `missing_skills`, `created_at` | Resume matcher |
+
+All client-side delete/update queries must include `.eq("userEmail", userEmail)` alongside `.eq("id", id)` to prevent IDOR.
 
 ### AI Prompt Outputs
 
@@ -253,6 +275,9 @@ Returns JSON:
 ```
 If interview < 60 seconds, returns low default ratings.
 
+**Resume match prompt** (inline in `resume-match/route.js`):
+Returns JSON: `{ confidence_score, skills_score, experience_score, semantic_score, matched_skills, missing_skills, summary }`
+
 ### Auth Middleware (`middleware.ts`)
 
 Public routes (no auth): `/sign-in.*`, `/sign-up.*`, `/`
@@ -271,3 +296,12 @@ npm run test
 # Run a single file
 npx jest app/(main)/dashboard/_components/Welcome.test.jsx
 ```
+
+Test files:
+- `app/(main)/dashboard/_components/Welcome.test.jsx`
+- `app/(main)/dashboard/_components/InterviewCard.test.jsx`
+- `app/(main)/dashboard/create-interview/_components/FormContainer.test.jsx`
+- `app/(main)/dashboard/create-interview/_components/QuestionList.test.jsx`
+- `app/(main)/scheduled-interview/_components/CandidateList.test.jsx`
+- `app/auth/Hero1.test.jsx`
+- `frontend/components/ui/button.test.jsx`

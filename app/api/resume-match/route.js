@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { GEMINI_FLASH_LITE } from "../../../backend/constants/aiModels";
 import OpenAI from "openai";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { supabase } from "../../../lib/supabase";
 
 const MATCH_PROMPT = (resumeData, jdData) => `
@@ -38,11 +38,17 @@ export async function POST(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { resume_id, jd_id, user_email } = await req.json();
+    const clerkUser = await currentUser();
+    const user_email = clerkUser?.emailAddresses?.[0]?.emailAddress;
+    if (!user_email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!resume_id || !jd_id || !user_email) {
+    const { resume_id, jd_id } = await req.json();
+
+    if (!resume_id || !jd_id) {
       return NextResponse.json(
-        { error: "resume_id, jd_id, and user_email are required" },
+        { error: "resume_id and jd_id are required" },
         { status: 400 }
       );
     }
@@ -120,7 +126,7 @@ export async function POST(req) {
 
     if (saveError) {
       console.error("Error saving match:", saveError);
-      return NextResponse.json({ error: saveError.message }, { status: 500 });
+      return NextResponse.json({ error: "Failed to save match result" }, { status: 500 });
     }
 
     return NextResponse.json(
@@ -140,6 +146,6 @@ export async function POST(req) {
     );
   } catch (err) {
     console.error("resume-match error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to process resume match" }, { status: 500 });
   }
 }

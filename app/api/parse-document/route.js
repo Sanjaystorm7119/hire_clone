@@ -29,6 +29,15 @@ export async function POST(req) {
 
     const mimeType = file.type;
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
+    if (buffer.length > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "File size exceeds the 2 MB limit" },
+        { status: 413 }
+      );
+    }
+
     const isPdf = mimeType === "application/pdf";
     const isDocx =
       mimeType ===
@@ -103,6 +112,6 @@ export async function POST(req) {
     );
   } catch (err) {
     console.error("parse-document error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to process document" }, { status: 500 });
   }
 }

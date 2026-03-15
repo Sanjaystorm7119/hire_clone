@@ -268,7 +268,12 @@ export default function JobDetailsBankPage() {
 
   const handleDelete = useCallback(
     async (id) => {
-      const { error } = await supabase.from("job_descriptions").delete().eq("id", id);
+      const userEmail = user?.emailAddresses[0]?.emailAddress;
+      const { error } = await supabase
+        .from("job_descriptions")
+        .delete()
+        .eq("id", id)
+        .eq("userEmail", userEmail);
       if (error) {
         toast.error(error.message);
         return;

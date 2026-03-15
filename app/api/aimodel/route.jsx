@@ -22,11 +22,16 @@ export async function POST(req) {
       );
     }
 
-    const FINAL_PROMPT = QUESTIONS_PROMPT.replace("{{jobTitle}}", jobPosition)
-      .replace("{{jobDescription}}", jobDescription)
-      .replace("{{duration}}", duration)
-      .replace("{{type}}", type)
-      .replace("{{companyDetails}}", companyDetails || "");
+    // Sanitize user inputs: strip null bytes and limit length to prevent prompt injection
+    const sanitize = (str, max) =>
+      String(str ?? "").replace(/\0/g, "").slice(0, max);
+
+    const FINAL_PROMPT = QUESTIONS_PROMPT
+      .replace("{{jobTitle}}", sanitize(jobPosition, 200))
+      .replace("{{jobDescription}}", sanitize(jobDescription, 5000))
+      .replace("{{duration}}", sanitize(duration, 20))
+      .replace("{{type}}", sanitize(type, 100))
+      .replace("{{companyDetails}}", sanitize(companyDetails, 2000));
 
     // console.log(FINAL_PROMPT);
 
@@ -52,7 +57,7 @@ export async function POST(req) {
 
     return NextResponse.json(completion.choices[0].message, { status: 200 });
   } catch (e) {
-    // console.error("API Error:", e);
-    return NextResponse.json({ error: e.message }, { status: e.status || 500 });
+    console.error("aimodel error:", e);
+    return NextResponse.json({ error: "Failed to generate questions" }, { status: 500 });
   }
 }

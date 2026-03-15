@@ -283,7 +283,12 @@ export default function ResumeBankPage() {
 
   const handleDelete = useCallback(
     async (id) => {
-      const { error } = await supabase.from("resumes").delete().eq("id", id);
+      const userEmail = user?.emailAddresses[0]?.emailAddress;
+      const { error } = await supabase
+        .from("resumes")
+        .delete()
+        .eq("id", id)
+        .eq("userEmail", userEmail);
       if (error) {
         toast.error(error.message);
         return;

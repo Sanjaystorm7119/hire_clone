@@ -31,6 +31,15 @@ export async function POST(req) {
 
     const mimeType = file.type;
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
+    if (buffer.length > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "File size exceeds the 2 MB limit" },
+        { status: 413 },
+      );
+    }
+
     const isPdf = mimeType === "application/pdf";
     const isDocx =
       mimeType ===
@@ -41,7 +50,7 @@ export async function POST(req) {
     if (!isPdf && !isDocx) {
       return NextResponse.json(
         { error: "Only PDF and DOCX files are supported" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -64,7 +73,7 @@ export async function POST(req) {
       if (!docText?.trim()) {
         return NextResponse.json(
           { error: "Could not extract text from the document" },
-          { status: 422 }
+          { status: 422 },
         );
       }
       messageContent = `Resume content:\n\n${docText}\n\n---\n\n${RESUME_EXTRACT_PROMPT}`;
@@ -81,7 +90,10 @@ export async function POST(req) {
     });
 
     const raw = completion.choices?.[0]?.message?.content || "";
-    const cleaned = raw.replace(/^```json\s*/i, "").replace(/```\s*$/, "").trim();
+    const cleaned = raw
+      .replace(/^```json\s*/i, "")
+      .replace(/```\s*$/, "")
+      .trim();
 
     let parsed;
     try {
@@ -89,7 +101,7 @@ export async function POST(req) {
     } catch {
       return NextResponse.json(
         { error: "Failed to parse model response as JSON", raw },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -102,10 +114,13 @@ export async function POST(req) {
         education: parsed.education || "",
         years_of_experience: parsed.years_of_experience || "",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err) {
     console.error("parse-resume error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to process resume" },
+      { status: 500 },
+    );
   }
 }

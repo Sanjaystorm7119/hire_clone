@@ -28,6 +28,13 @@ export async function POST(req) {
       }
     );
 
+    if (!vapiResponse.ok) {
+      return NextResponse.json(
+        { error: `Failed to fetch transcript from Vapi (${vapiResponse.status})` },
+        { status: 502 }
+      );
+    }
+
     const vapiData = await vapiResponse.json();
 
     // Transform Vapi log to UI transcript format and filter out system messages

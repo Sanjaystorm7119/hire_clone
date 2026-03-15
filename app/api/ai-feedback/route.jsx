@@ -21,14 +21,18 @@ export async function POST(req) {
       );
     }
 
+    // Sanitize user inputs: strip null bytes and limit length to prevent prompt injection
+    const sanitize = (str, max) =>
+      String(str ?? "").replace(/\0/g, "").slice(0, max);
+
     // Prepend company details to the conversation prompt if available
     const companyPrefix = companyDetails
-      ? `Company Details:\n${companyDetails}\n\n`
+      ? `Company Details:\n${sanitize(companyDetails, 2000)}\n\n`
       : "";
 
     const FINAL_PROMPT =
       companyPrefix +
-      FEEDBACK.replace("{{conversation}}", JSON.stringify(conversation));
+      FEEDBACK.replace("{{conversation}}", JSON.stringify(conversation).slice(0, 50000));
 
     const openai = new OpenAI({
       baseURL: "https://openrouter.ai/api/v1",
@@ -55,6 +59,7 @@ export async function POST(req) {
       { status: 200 },
     );
   } catch (e) {
-    return NextResponse.json({ error: e.message }, { status: e.status || 500 });
+    console.error("ai-feedback error:", e);
+    return NextResponse.json({ error: "Failed to generate feedback" }, { status: 500 });
   }
 }

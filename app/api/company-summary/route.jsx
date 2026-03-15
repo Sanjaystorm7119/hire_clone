@@ -20,11 +20,15 @@ export async function POST(req) {
       );
     }
 
+    // Sanitize user inputs: strip null bytes and limit length to prevent prompt injection
+    const sanitize = (str, max) =>
+      String(str ?? "").replace(/\0/g, "").slice(0, max);
+
     const COMPANY_SUMMARY_PROMPT = `Based on the following job details, create a concise company summary that would be suitable for introducing the company to a candidate during an interview:
 
-Job Position: ${jobPosition}
-Job Description: ${jobDescription}
-Company Details: ${companyDetails}
+Job Position: ${sanitize(jobPosition, 200)}
+Job Description: ${sanitize(jobDescription, 5000)}
+Company Details: ${sanitize(companyDetails, 2000)}
 
 Please create a professional, engaging summary that:
 
@@ -62,7 +66,7 @@ Return only the summary text. Do not include any other formatting or explanation
 
     return NextResponse.json({ summary }, { status: 200 });
   } catch (e) {
-    // console.error("Company Summary API Error:", e);
-    return NextResponse.json({ error: e.message }, { status: e.status || 500 });
+    console.error("company-summary error:", e);
+    return NextResponse.json({ error: "Failed to generate company summary" }, { status: 500 });
   }
 }
