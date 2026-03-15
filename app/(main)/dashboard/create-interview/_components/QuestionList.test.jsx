@@ -11,6 +11,9 @@ jest.mock("@clerk/nextjs", () => ({
       Credits: "10",
     },
   }),
+  useSession: () => ({
+    session: { getToken: async () => "test-token" },
+  }),
 }));
 
 // Mock sonner toast

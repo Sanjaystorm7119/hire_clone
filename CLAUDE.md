@@ -287,7 +287,7 @@ All others: protected. Matcher skips Next.js internals and static files; always 
 
 Jest 30 + React Testing Library 16. Mocks for Clerk in `__mocks__/@clerk/nextjs.js`. Test files co-located with components (`.test.jsx` suffix). `test-utils.js` provides a `render()` wrapper with `ClerkProvider`.
 
-All test mocks (Supabase URL, Clerk keys, Vapi keys, Next.js Image, useRouter, usePathname, useSearchParams) are set up in `jest.setup.js`.
+All test mocks (Supabase U  , Clerk keys, Vapi keys, Next.js Image, useRouter, usePathname, useSearchParams) are set up in `jest.setup.js`.
 
 ```bash
 # Run all tests

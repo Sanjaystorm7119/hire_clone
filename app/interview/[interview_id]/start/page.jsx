@@ -35,6 +35,7 @@ function StartInterview() {
 
   const router = useRouter();
 
+
   const { interview_id } = useParams();
 
   // Add ref to track if feedback is being generated

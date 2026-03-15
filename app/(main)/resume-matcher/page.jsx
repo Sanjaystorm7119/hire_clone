@@ -167,6 +167,7 @@ function MatchCard({ match, resumeMap, jdMap }) {
 export default function ResumeMatcherPage() {
   const { user } = useUser();
 
+
   // Data lists
   const [resumes, setResumes] = useState([]);
   const [jds, setJds] = useState([]);

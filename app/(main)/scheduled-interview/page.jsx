@@ -22,6 +22,7 @@ const PAGE_SIZE = 6;
 function ScheduledInterview() {
   const { user } = useUser();
 
+
   const [interviewList, setInterviewList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -67,24 +68,17 @@ function ScheduledInterview() {
       setLoading(true);
       setError(null);
 
+      const userEmail = user.emailAddresses[0]?.emailAddress;
       const from = (page - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
       let q = supabase
         .from("interviews")
         .select(
-          `
-          jobPosition,
-          jobDescription,
-          companyName,
-          duration,
-          interviewId,
-          created_at,
-          interview_feedback:interview-feedback(userEmail, transcript, call_id)
-        `,
+          "jobPosition,jobDescription,companyName,duration,interviewId,created_at",
           { count: "exact" }
         )
-        .eq("userEmail", user.emailAddresses[0]?.emailAddress)
+        .eq("userEmail", userEmail)
         .order("id", { ascending: false })
         .range(from, to);
 
@@ -92,15 +86,38 @@ function ScheduledInterview() {
         q = q.ilike(field, `%${query.trim()}%`);
       }
 
-      const { data, error, count } = await q;
+      const { data: interviews, error, count } = await q;
 
       if (error) {
         console.error("Supabase error:", error);
-        setError(error.message);
+        setError(error.message || "Failed to load interviews");
         return;
       }
 
-      setInterviewList(data || []);
+      if (!interviews?.length) {
+        setInterviewList([]);
+        setTotalCount(count || 0);
+        return;
+      }
+
+      // Fetch feedback counts separately to avoid requiring a DB foreign key
+      const interviewIds = interviews.map((i) => i.interviewId);
+      const { data: feedbackRows } = await supabase
+        .from("interview-feedback")
+        .select("interview_Id")
+        .in("interview_Id", interviewIds);
+
+      const countMap = {};
+      (feedbackRows || []).forEach((row) => {
+        countMap[row.interview_Id] = (countMap[row.interview_Id] || 0) + 1;
+      });
+
+      const merged = interviews.map((interview) => ({
+        ...interview,
+        interview_feedback: Array(countMap[interview.interviewId] || 0).fill({}),
+      }));
+
+      setInterviewList(merged);
       setTotalCount(count || 0);
     } catch (err) {
       console.error("Error fetching interviews:", err);

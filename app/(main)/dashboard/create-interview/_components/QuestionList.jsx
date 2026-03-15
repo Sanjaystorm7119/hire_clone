@@ -108,6 +108,7 @@ function QuestionList({ formData, onCreateInterviewLink }) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const hasCalledAPI = useRef(false);
   const { user } = useUser();
+
   const [saveLoading, setSaveLoading] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [interviewId, setInterviewId] = useState(null);
@@ -299,6 +300,22 @@ function QuestionList({ formData, onCreateInterviewLink }) {
       if (creditError) {
         throw creditError;
       }
+
+      // Mirror the job details into the job_descriptions bank (linked by interview_id)
+      await supabase.from("job_descriptions").insert({
+        userEmail: user?.primaryEmailAddress?.emailAddress,
+        role_title: formData?.jobPosition || "Untitled Role",
+        raw_text: formData?.jobDescription || "",
+        interview_id: newInterviewId,
+        parsed_data: {
+          company_name: formData?.companyName,
+          company_details: formData?.companyDetails,
+          job_position: formData?.jobPosition,
+          job_description: formData?.jobDescription,
+          interview_types: formData?.type,
+          duration: formData?.duration,
+        },
+      });
 
       setInterviewId(newInterviewId);
       setHasUnsavedChanges(false);

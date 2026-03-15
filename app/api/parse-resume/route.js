@@ -11,7 +11,11 @@ const RESUME_EXTRACT_PROMPT = `Extract the following information from this resum
   "skills": ["skill1", "skill2"],
   "experience_summary": "Brief 2-3 sentence summary of work experience",
   "education": "Highest education level, degree, and field of study",
-  "years_of_experience": "Estimated years of professional experience as a string (e.g. '3', '5-7')"
+  "years_of_experience": "Estimated years of professional experience as a number string (e.g. '3', '7', '12'). Use the lower bound if a range.",
+  "current_role": "Current or most recent job title (e.g. 'Senior Frontend Developer', or empty string if not found)",
+  "location": "City and country or state from the resume (e.g. 'San Francisco, CA' or empty string if not found)",
+  "degree": "Highest academic degree type only — one of: Bachelor's, Master's, PhD, Associate's, High School, or empty string if not found",
+  "college": "Name of the university or college for the highest degree (or empty string if not found)"
 }
 If a field cannot be determined from the document, use an empty string or empty array.`;
 
@@ -113,6 +117,10 @@ export async function POST(req) {
         experience_summary: parsed.experience_summary || "",
         education: parsed.education || "",
         years_of_experience: parsed.years_of_experience || "",
+        current_role: parsed.current_role || "",
+        location: parsed.location || "",
+        degree: parsed.degree || "",
+        college: parsed.college || "",
       },
       { status: 200 },
     );

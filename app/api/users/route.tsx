@@ -5,10 +5,10 @@ import { supabase } from '../../../lib/supabase';
 export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
-        
+
         if (!user?.primaryEmailAddress?.emailAddress) {
             return NextResponse.json(
-                { error: "No user email found" }, 
+                { error: "No user email found" },
                 { status: 401 }
             );
         }

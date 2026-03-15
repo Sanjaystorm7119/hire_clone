@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 function Interview() {
   const { interview_id } = useParams();
   const { user, isLoaded } = useUser();
+
   const [interviewData, setInterviewData] = useState();
   const [userData, setUserData] = useState();
   const [loading, setLoading] = useState(true);

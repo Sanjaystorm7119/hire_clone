@@ -12,6 +12,7 @@ function LatestInterviewsList() {
   const [interviewList, setInterviewList] = useState([]);
   const { user } = useUser();
 
+
   useEffect(() => {
     user && getInterviewList();
   }, [user]);

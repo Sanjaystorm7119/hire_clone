@@ -8,6 +8,7 @@ import CandidateList from "../../_components/CandidateList";
 
 function InterviewDetails() {
   const { user } = useUser();
+
   const params = useParams();
   const interview_id = params?.interview_id;
 

@@ -7,4 +7,10 @@ export const useUser = () => ({
   },
 });
 
+export const useSession = () => ({
+  session: {
+    getToken: async () => "test-token",
+  },
+});
+
 export const ClerkProvider = ({ children }) => children;

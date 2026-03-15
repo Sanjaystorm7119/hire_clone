@@ -15,6 +15,7 @@ function AllInterviews() {
   const [currentPage, setCurrentPage] = useState(1);
   const { user } = useUser();
 
+
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   useEffect(() => {
@@ -24,23 +25,40 @@ function AllInterviews() {
   }, [user, currentPage]);
 
   const getInterviewList = async (page) => {
+    const userEmail = user.emailAddresses[0]?.emailAddress;
     const from = (page - 1) * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
     const { data: interviews, error, count } = await supabase
       .from("interviews")
-      .select(
-        `
-        *,
-        interview_feedback:interview-feedback(userEmail, transcript, call_id)
-      `,
-        { count: "exact" }
-      )
-      .eq("userEmail", user.emailAddresses[0]?.emailAddress)
+      .select("*", { count: "exact" })
+      .eq("userEmail", userEmail)
       .order("id", { ascending: false })
       .range(from, to);
 
-    setInterviewList(interviews || []);
+    if (!interviews?.length) {
+      setInterviewList([]);
+      setTotalCount(count || 0);
+      return;
+    }
+
+    const interviewIds = interviews.map((i) => i.interviewId);
+    const { data: feedbackRows } = await supabase
+      .from("interview-feedback")
+      .select("interview_Id")
+      .in("interview_Id", interviewIds);
+
+    const countMap = {};
+    (feedbackRows || []).forEach((row) => {
+      countMap[row.interview_Id] = (countMap[row.interview_Id] || 0) + 1;
+    });
+
+    const merged = interviews.map((interview) => ({
+      ...interview,
+      interview_feedback: Array(countMap[interview.interviewId] || 0).fill({}),
+    }));
+
+    setInterviewList(merged);
     setTotalCount(count || 0);
   };
 
