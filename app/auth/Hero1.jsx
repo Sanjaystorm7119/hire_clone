@@ -1,12 +1,10 @@
-// This file has been temporarily commented out and is not in use
-/*
 // This file has been temporarily commented out and is not in use.
 // If needed in the future, restore from version control.
 
-"use client";
+// "use client";
 
-export default function Hero1() {
-    return null; // Component temporarily disabled
+// export default function Hero1() {
+//     return null; // Component temporarily disabled
 
 //   const debouncedFn = useCallback(
 //     (...args) => {
@@ -425,7 +423,6 @@ export default function Hero1() {
 //             const magneticOffset = isHovered
 //               ? { x: parallaxOffset.x * 2, y: parallaxOffset.y * 2 }
 //               : parallaxOffset;
-
 //             return (
 //               <div
 //                 key={category.id}
@@ -595,4 +592,4 @@ export default function Hero1() {
 //     </div>
 //   );
 // }
-*/
+
