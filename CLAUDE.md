@@ -55,13 +55,14 @@ hireAva_1-main/
 │   │   ├── layout.jsx                     #   Secondary bg, p-10 padding, wraps DashboardProvider
 │   │   ├── provider.jsx                   #   DashboardProvider — SidebarProvider + AppSideBar + Welcome
 │   │   ├── _components/
-│   │   │   └── AppsideBar.jsx             #   Sidebar nav: Eva logo, Create Interview button, 7-item menu
-│   │   ├── dashboard/page.jsx             #   Renders CreateOptions + LatestInterviewsList
+│   │   │   └── AppsideBar.jsx             #   Sidebar: dark navy (#0F172A), amber accents, 3 NAV_GROUPS (Main/Talent/Account), user footer
+│   │   ├── dashboard/page.jsx             #   Renders DashboardStats + LatestInterviewsList
 │   │   ├── dashboard/_components/
-│   │   │   ├── Welcome.jsx                #   Greeting banner with user name + Eva image
+│   │   │   ├── Welcome.jsx                #   Greeting banner: time-based greeting + 7 rotating AI tips (day-of-week)
 │   │   │   ├── Welcome.test.jsx
-│   │   │   ├── CreateOptions.jsx          #   2-column grid: Create Interview + Phone Screening (coming soon)
-│   │   │   ├── InterviewCard.jsx          #   3D card: company, position, duration, candidates, copy/send link
+│   │   │   ├── DashboardStats.jsx         #   4 metric cards: Interviews Created, Completed, Candidates Evaluated, Avg Score
+│   │   │   ├── CreateOptions.jsx          #   2-column grid: Create Interview + Phone Screening (coming soon) — not used in dashboard/page.jsx
+│   │   │   ├── InterviewCard.jsx          #   Card: company avatar (hash-colored), position, duration, candidates, copy/send link
 │   │   │   ├── InterviewCard.test.jsx
 │   │   │   └── LatestInterviewsList.jsx   #   Fetches last 6 interviews with candidate counts
 │   │   ├── dashboard/create-interview/page.jsx   #   3-step wizard (FormContainer → QuestionList → InterviewLink)
@@ -87,18 +88,18 @@ hireAva_1-main/
 │   ├── interview/                          # ← FRONTEND: Candidate-facing interview flow
 │   │   ├── layout.jsx
 │   │   ├── [interview_id]/page.jsx        #   Join/landing: checklist, duplicate-attempt guard
-│   │   ├── [interview_id]/start/page.jsx  #   Live voice interview with Vapi (~1067 lines)
+│   │   ├── [interview_id]/start/page.jsx  #   Live voice interview with Vapi
 │   │   ├── [interview_id]/start/_components/
 │   │   │   └── AlertConfirmation.jsx      #   End-interview confirmation dialog
-│   │   ├── [interview_id]/completed/page.jsx     #   Success screen with confetti (50 pieces, 3s)
+│   │   ├── [interview_id]/completed/page.jsx     #   Success screen with confetti (50 pieces, 3s) + "What Happens Next?" steps
 │   │   └── _components/
 │   │       └── InterviewHeader.jsx        #   Eva logo linking to dashboard
 │   ├── auth/                               # ← FRONTEND: Public landing page
-│   │   ├── page.jsx                       #   Navbar + LiquidChrome hero + Footer
+│   │   ├── page.jsx                       #   Dark-theme landing: Navbar + animated InterviewMockup hero + feature cards + Footer
 │   │   ├── Hero1.jsx                      #   Disabled (returns null)
 │   │   ├── Hero1.test.jsx
 │   │   ├── Hero1.css
-│   │   └── Footer.jsx                     #   Company info, contact (Chennai, India), About dialog, social links
+│   │   └── Footer.jsx                     #   Dark footer: 3-column layout, About dialog (company values), social links, serif wordmark bg
 │   ├── unauthorized/page.jsx
 │   ├── not-found.jsx                      #   404 page with navigation shortcuts
 │   ├── layout.jsx                          # Root layout (ClerkProvider + Geist fonts + Sonner)
@@ -113,7 +114,7 @@ hireAva_1-main/
 │   │   ├── card.jsx
 │   │   ├── dialog.jsx
 │   │   ├── input.jsx / label.jsx / textarea.jsx / select.jsx
-│   │   ├── LiquidChrome.jsx + LiquidChrome.css   # Custom canvas 3D liquid animation (landing hero)
+│   │   ├── LiquidChrome.jsx + LiquidChrome.css   # Custom canvas 3D liquid animation (exists but no longer used in landing)
 │   │   ├── progress.jsx / separator.jsx / skeleton.jsx
 │   │   ├── sheet.jsx / sidebar.jsx / tabs.jsx / tooltip.jsx
 │   │   └── sonner.jsx                     # Toast notification wrapper
@@ -124,7 +125,7 @@ hireAva_1-main/
 │   ├── lib/
 │   │   └── utils.js                        # cn() utility (clsx + tailwind-merge)
 │   └── constants/
-│       ├── uiConstants.js                  # SidebarOptions (7), InterviewTypes (5), interviewPrompt()
+│       ├── uiConstants.js                  # SidebarOptions, InterviewTypes (5), interviewPrompt()
 │       └── (no other files)
 ├── backend/                                # Backend-only support files
 │   └── constants/
@@ -162,8 +163,6 @@ All existing `app/` files use relative paths to reach `frontend/` or `backend/`.
 
 **HireEva** is an AI-powered interview platform. Recruiters create interview sessions; candidates are interviewed by a voice AI named "Eva"; AI generates structured feedback. A separate **resume/JD matching subsystem** lets recruiters upload resumes and job descriptions and score them against each other.
 
-
-
 ---
 
 ### Interview Lifecycle
@@ -173,15 +172,16 @@ All existing `app/` files use relative paths to reach `frontend/` or `backend/`.
    - Step 2 (`QuestionList`): Calls `POST /api/aimodel` → OpenRouter → Gemini 2.5 Flash Lite generates one question per minute of duration; drag-and-drop reorder via `@dnd-kit`. Add/remove questions. On "Create Interview Link": saves to `interviews` table **and** mirrors job details to `job_descriptions` table (linked via `interview_id`).
    - Step 3 (`InterviewLink`): Displays shareable candidate link (`{HOST_URL}/{interviewId}`). Share via copy, email, Slack, WhatsApp buttons.
 
-2. **Conduct** (`/interview/[interview_id]/start`) — ~1067 lines. Candidate joins; `@vapi-ai/web` powers a live voice session.
+2. **Conduct** (`/interview/[interview_id]/start`) — Candidate joins; `@vapi-ai/web` powers a live voice session.
    - Vapi configured with `interviewPrompt()` as system prompt (Eva persona).
    - Interview state machine: `ready → briefing → questions → ended`.
-   - Countdown timer from duration; mic mute/unmute toggle.
+   - Countdown timer from duration with expiration warning (does not auto-end — allows candidate to finish); mic mute/unmute toggle.
    - Tracks conversation in state; replaces programming operators with TTS-friendly words (e.g. `===` → "triple equals").
+   - Tracks interruption frequency and timeout management.
    - On `call-end`: calls `POST /api/ai-feedback`, saves feedback JSON to `interview-feedback` table. Retries on 429.
    - On tab close mid-call: `navigator.sendBeacon` attempts transcript save.
 
-3. **Feedback** (`/interview/[interview_id]/completed`) — Transcript sent to `POST /api/ai-feedback`; Gemini 2.5 Flash returns ratings (1–10) for technical skills, communication, problem-solving, experience, and overall, plus hire/no-hire recommendation. Saved to Supabase `interview-feedback`. Completion page shows confetti animation (50 pieces, 3 s).
+3. **Feedback** (`/interview/[interview_id]/completed`) — Transcript sent to `POST /api/ai-feedback`; Gemini 2.5 Flash returns ratings (1–10) for technical skills, communication, problem-solving, experience, and overall, plus hire/no-hire recommendation. Saved to Supabase `interview-feedback`. Completion page shows confetti animation (50 pieces, 3 s) and "What Happens Next?" steps section.
 
 4. **Review** (`/scheduled-interview/[interview_id]/details`) — Recruiter views all candidates, transcripts (`CandidateTranscriptDialogBox` — chat format with stats), and AI feedback (`CandidateFeedbackDialogBox` — progress bars + recommendation). `CandidateList` has min/max rating filter (1–10). `InterviewdetailContainer` supports full edit mode (position, description, questions, duration, types, company details).
 
@@ -243,10 +243,10 @@ Model IDs are defined in `backend/constants/aiModels.js` — update there to cha
 | Route | File | Purpose |
 |---|---|---|
 | `/` | `app/page.jsx` | Renders auth landing page |
-| `/auth` | `app/auth/page.jsx` | Public landing: Navbar + LiquidChrome + Footer |
+| `/auth` | `app/auth/page.jsx` | Dark-theme public landing: animated InterviewMockup + feature cards + Footer |
 | `/sign-in` | `app/(auth)/sign-in/...` | Clerk sign-in |
 | `/sign-up` | `app/(auth)/sign-up/...` | Clerk sign-up |
-| `/dashboard` | `app/(main)/dashboard/page.jsx` | Recruiter dashboard (CreateOptions + last 6 interviews) |
+| `/dashboard` | `app/(main)/dashboard/page.jsx` | Recruiter dashboard (DashboardStats + LatestInterviewsList) |
 | `/dashboard/create-interview` | `app/(main)/dashboard/create-interview/page.jsx` | 3-step interview creation |
 | `/scheduled-interview` | `app/(main)/scheduled-interview/page.jsx` | Interview list (search by position/company, paginated) |
 | `/scheduled-interview/[id]/details` | `...details/page.jsx` | Candidates, transcripts, feedback, edit interview |
@@ -271,14 +271,18 @@ Model IDs are defined in `backend/constants/aiModels.js` — update there to cha
 | AI/LLM | OpenRouter API | Gemini 2.5 Flash Lite (questions, matching, summary), Gemini 2.5 Flash (feedback), Gemma 3n (doc/resume parse) |
 | Voice | `@vapi-ai/web` — live interview; Eva persona built from `interviewPrompt()` | v^2.3.8 |
 | UI components | Shadcn/ui (new-york style) + Radix UI primitives in `frontend/components/ui/` | — |
-| Animations | `framer-motion` | v^12.23.0 |
+| Animations | `framer-motion` v^12.23.0 + `motion` v^12.19.2 | Landing page uses `motion/react` import from `motion` package |
 | Drag & Drop | `@dnd-kit/core` + `@dnd-kit/sortable` — question reordering in `QuestionList` | v^6.3.1 |
 | Notifications | `sonner` toasts | v^2.0.5 |
-| Icons | `lucide-react` | v^0.525.0 |
+| Icons | `lucide-react` v^0.525.0 + `@tabler/icons-react` v^3.34.0 | tabler used in start/page.jsx (IconPhoneEnd) |
 | Document parsing | `mammoth` — DOCX → plain text | v^1.12.0 |
-| HTTP client | `axios` — used in `QuestionList` and `start/page.jsx` | — |
-| Date formatting | `moment` — used in `CandidateList` | — |
-| Styling | Tailwind CSS v4 + `clsx` + `tailwind-merge` | — |
+| HTTP client | `axios` — used in `QuestionList` and `start/page.jsx` | v^1.10.0 |
+| Date formatting | `moment` — used in `CandidateList` | v^2.30.1 |
+| Styling | Tailwind CSS v4 + `clsx` + `tailwind-merge` + `tw-animate-css` | Landing/footer use inline CSS-in-JS with CSS custom properties |
+| Unique IDs | `uuid` v^11.1.0 | Available for use |
+| OpenAI SDK | `openai` v^5.8.2 | In dependencies (usage context: OpenRouter-compatible client) |
+| 3D/WebGL | `ogl` v^1.0.11 | In dependencies |
+| E2E Testing | `@playwright/test` v^1.58.2 | Dev dependency (no tests written yet) |
 
 ---
 
@@ -297,7 +301,7 @@ React Context only — no Redux or Zustand:
 |---|---|---|
 | `interviews` | `interviewId`, `userEmail`, `jobPosition`, `jobDescription`, `companyName`, `companyDetails`, `duration`, `type` (JSON array), `questionList` (JSON array), `companySummary`, `created_at` | Create flow, dashboard, review |
 | `interview-feedback` | `userEmail`, `userName`, `interview_Id`, `feedback` (JSON: ratings + summary + recommendation), `transcript` (JSON), `call_id`, `created_at` | Feedback generation, transcript display |
-| `Users` | `email`, `clerk_user_id`, `name`, `picture`, `firstname`, `lastname`, `created_at` | Synced on every login via `app/provider.jsx` |
+| `Users` | `email`, `clerk_user_id`, `name`, `picture`, `firstname`, `lastname`, `credits`, `created_at` | Synced on every login via `app/provider.jsx` |
 | `resumes` | `id`, `userEmail`, `candidate_name`, `candidate_email`, `parsed_data` (JSON: skills, experience_summary, education, years_of_experience, current_role, location, degree, college), `created_at` | Resume bank, resume matcher |
 | `job_descriptions` | `id`, `userEmail`, `role_title`, `raw_text`, `parsed_data` (JSON: company_name, company_details, job_position, job_description, interview_types, duration), `interview_id` (optional FK), `created_at` | JD bank, resume matcher |
 | `candidate_job_matches` | `id`, `userEmail`, `resume_id`, `jd_id`, `confidence_score`, `skills_score`, `experience_score`, `semantic_score`, `matched_skills` (array), `missing_skills` (array), `created_at` | Resume matcher |
@@ -369,13 +373,25 @@ All others: protected via `auth.protect()`. Matcher skips Next.js internals and 
 
 8. **`InterviewDataContext`**: Just a bare `createContext()` — no Provider or default value shipped. State management is page-local.
 
-9. **Hero1.jsx**: Exists but returns `null`. Legacy landing page code is preserved but disabled.
+9. **Hero1.jsx**: Exists but returns `null`. Legacy landing page code preserved but disabled.
 
 10. **`app/page.jsx`**: Does not redirect — it renders `app/auth/page.jsx` component directly. Route is `/` (public).
 
 11. **`all-interview` vs `scheduled-interview`**: Both list interviews for the recruiter. `all-interview` is paginated with no search. `scheduled-interview` has search + links to per-interview details/candidates.
 
 12. **IDOR prevention**: Every Supabase client-side delete/update must chain `.eq("userEmail", userEmail)`. API routes re-fetch with userEmail filter before processing (see `resume-match/route.js`).
+
+13. **Dashboard page**: Renders `DashboardStats` + `LatestInterviewsList`. `CreateOptions.jsx` still exists but is **not imported** by `dashboard/page.jsx` — it is unused.
+
+14. **DashboardStats**: Fetches two Supabase queries in parallel — `interviews` (count) and `interview-feedback` (feedback JSON). Calculates avg from `feedback.rating.OverallRating`. Shows `—` while loading.
+
+15. **Welcome component tips**: Array of 7 tips; selected by `new Date().getDay() % 7`. Time-based greeting switches at 12:00 (morning → afternoon) and 17:00 (afternoon → evening).
+
+16. **Sidebar navigation groups**: `NAV_GROUPS` config with 3 groups — `Main` (Dashboard, Scheduled Interviews, All Interviews), `Talent` (Resume Bank, Job Details Bank, Resume Matcher), `Account` (Settings). Active item highlighted with amber (#F59E0B) dot + tinted background.
+
+17. **Landing page redesign**: `app/auth/page.jsx` is a dark-theme page (--pg-bg: #07070A) using `motion/react` from the `motion` package (not `framer-motion`). Features animated `InterviewMockup` component with waveforms, live scoring bars, rotating interview questions. `LiquidChrome.jsx` still exists in `frontend/components/ui/` but is no longer used here.
+
+18. **Styling conventions**: Dashboard components use inline style objects with a warm neutral palette (white cards, #EDE8DF borders, amber accents). Landing page and Footer use injected `<style>` tags with CSS custom properties (--pg-* variables) and "DM Sans" + "Instrument Serif" Google Fonts.
 
 ---
 
@@ -384,6 +400,8 @@ All others: protected via `auth.protect()`. Matcher skips Next.js internals and 
 Jest 30 + React Testing Library 16. Mocks for Clerk in `__mocks__/@clerk/nextjs.js`. Test files co-located with components (`.test.jsx` suffix). `test-utils.js` provides a `render()` wrapper with `ClerkProvider`.
 
 All test mocks (Supabase, Clerk keys, Vapi keys, Next.js Image, useRouter, usePathname, useSearchParams) are set up in `jest.setup.js`.
+
+Playwright (`@playwright/test`) is installed as a dev dependency but no E2E tests have been written yet.
 
 ```bash
 # Run all tests
