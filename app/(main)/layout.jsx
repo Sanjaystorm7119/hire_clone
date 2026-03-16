@@ -3,16 +3,20 @@ import DashboardProvider from "../(main)/provider";
 
 function DashboardLayout({ children }) {
   return (
-    // <div className="bg-gradient-to-l from-blue-300 to-blue-50  p-10">
-    <div className="bg-secondary  p-10">
-      {/* <div className="min-h-screen bg-gradient-to-b from-purple-700 via-purple-800 to-gray-800"> */}
-      {/* <div className="min-h-screen bg-black/20 backdrop-blur-sm"> */}
-      <DashboardProvider>
-        <div className="">{children}</div>
-      </DashboardProvider>
-    </div>
-    // </div>
-    // </div>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+        .eva-ui, .eva-ui * { font-family: 'DM Sans', system-ui, sans-serif; }
+        .eva-ui h1, .eva-ui h2, .eva-ui h3, .eva-ui h4, .eva-ui .eva-heading {
+          font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        }
+      ` }} />
+      <div className="eva-ui bg-[#FAFAF7] min-h-screen">
+        <DashboardProvider>
+          <div>{children}</div>
+        </DashboardProvider>
+      </div>
+    </>
   );
 }
 

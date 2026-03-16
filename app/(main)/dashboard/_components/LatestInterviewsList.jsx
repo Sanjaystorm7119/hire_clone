@@ -1,155 +1,133 @@
 "use client";
-import { Plus, Video } from "lucide-react";
+import { Plus } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Button } from "../../../../frontend/components/ui/button";
 import Link from "next/link";
 import { supabase } from "../../../../lib/supabase";
 import { useUser } from "@clerk/nextjs";
 import InterviewCard from "./InterviewCard";
-import { motion } from "framer-motion";
 
 function LatestInterviewsList() {
   const [interviewList, setInterviewList] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { user } = useUser();
-
 
   useEffect(() => {
     user && getInterviewList();
   }, [user]);
 
   const getInterviewList = async () => {
-    let { data: interviews, error } = await supabase
+    let { data: interviews } = await supabase
       .from("interviews")
-      .select(
-        `*,interview_feedback:interview-feedback(userEmail, transcript, call_id)`
-      )
+      .select(`*,interview_feedback:interview-feedback(userEmail, transcript, call_id)`)
       .eq("userEmail", user.emailAddresses[0]?.emailAddress)
       .order("id", { ascending: false })
       .limit(6);
-    // console.log(interviews);
-    setInterviewList(interviews);
+    setInterviewList(interviews || []);
+    setLoading(false);
   };
 
+  // Skeleton loader
+  if (loading) {
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div
+              className="h-5 w-40 rounded-lg animate-pulse mb-1"
+              style={{ background: "#EDE8DF" }}
+            />
+            <div
+              className="h-3 w-56 rounded animate-pulse"
+              style={{ background: "#F1EDE5" }}
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="rounded-xl animate-pulse"
+              style={{ background: "#F5F1EB", height: 200, border: "1px solid #EDE8DF" }}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="my-5 ">
-      <h2 className="font-bold text-2xl mb-2">Previous Interviews</h2>
-      {interviewList?.length == 0 && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="flex flex-col items-center justify-center min-h-[400px] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl border-2 border-dashed border-blue-300 relative overflow-hidden"
-        >
-          {/* Background decoration */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-400/5 to-purple-400/5"></div>
-          <div className="absolute top-4 right-4 w-20 h-20 bg-blue-200/30 rounded-full blur-xl"></div>
-          <div className="absolute bottom-4 left-4 w-16 h-16 bg-purple-200/30 rounded-full blur-xl"></div>
-
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="relative z-10 text-center space-y-6"
+    <div>
+      {/* Section header */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2
+            className="text-[16px] font-bold leading-none eva-heading"
+            style={{ color: "#0F172A" }}
           >
-            {/* Animated icon */}
-            <motion.div
-              className="relative"
-              whileHover={{ scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                <Video className="text-white w-10 h-10" />
-              </div>
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                style={{ opacity: 0.3 }}
-              />
-            </motion.div>
+            Recent Interviews
+          </h2>
+          <p className="text-[12px] mt-1" style={{ color: "#94A3B8" }}>
+            Your latest 6 interview sessions
+          </p>
+        </div>
+        {interviewList.length > 0 && (
+          <Link
+            href="/all-interview"
+            className="text-[12px] font-semibold transition-colors eva-heading"
+            style={{ color: "#F59E0B" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#E08900")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#F59E0B")}
+          >
+            View all →
+          </Link>
+        )}
+      </div>
 
-            {/* Text content */}
-            <div className="space-y-2">
-              <motion.h2
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-                className="text-2xl font-bold text-gray-800"
-              >
-                Ready to Start Your First Interview?
-              </motion.h2>
-              <motion.p
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-                className="text-gray-600 max-w-md mx-auto"
-              >
-                Create your first interview session with AI-powered questions
-                tailored to your needs.
-              </motion.p>
-            </div>
-
-            {/* Enhanced button */}
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
+      {/* Empty state */}
+      {interviewList.length === 0 ? (
+        <div
+          className="rounded-xl p-12 text-center"
+          style={{
+            background: "#fff",
+            border: "1.5px dashed #EDE8DF",
+          }}
+        >
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
+            style={{ background: "#FEF3C7" }}
+          >
+            <Plus className="h-6 w-6" style={{ color: "#F59E0B" }} />
+          </div>
+          <h3
+            className="text-[15px] font-bold mb-1.5 eva-heading"
+            style={{ color: "#0F172A" }}
+          >
+            No interviews yet
+          </h3>
+          <p
+            className="text-[13px] mb-6 max-w-sm mx-auto leading-relaxed"
+            style={{ color: "#94A3B8" }}
+          >
+            Create your first in under 2 minutes — just add a job description and
+            Eva handles the rest.
+          </p>
+          <Link href="/dashboard/create-interview">
+            <button
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold rounded-lg transition-colors eva-heading"
+              style={{ background: "#F59E0B", color: "#0F172A" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#E08900")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#F59E0B")}
             >
-              <Link href={"/dashboard/create-interview"}>
-                <motion.button
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 group"
-                >
-                  <motion.div
-                    className="bg-white/20 p-1 rounded-full"
-                    whileHover={{ rotate: 90 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Plus className="w-5 h-5" />
-                  </motion.div>
-                  <span>Create Your First Interview</span>
-                  <motion.div
-                    className="w-2 h-2 bg-white rounded-full"
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  />
-                </motion.button>
-              </Link>
-            </motion.div>
-
-            {/* Additional features hint */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.5 }}
-              className="flex items-center justify-center gap-6 text-sm text-gray-500 mt-8"
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>AI-Powered Questions</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span>Real-time Feedback</span>
-              </div>
-              {/* <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <span>Practice Anytime</span>
-              </div> */}
-            </motion.div>
-          </motion.div>
-        </motion.div>
-      )}
-      {interviewList && interviewList.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-14">
-          {interviewList.map((interview, index) => {
-            return <InterviewCard interview={interview} key={index} />;
-          })}
+              <Plus className="h-4 w-4" />
+              Create your first interview
+            </button>
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {interviewList.map((interview, index) => (
+            <InterviewCard interview={interview} key={index} />
+          ))}
         </div>
       )}
     </div>

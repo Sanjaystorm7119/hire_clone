@@ -507,7 +507,7 @@ function ScheduledInterview() {
             </div>
           )}
 
-          <p className="text-center text-sm text-gray-400 mt-3">
+          <p className="text-center text-sm text-gray-400 mt-6">
             Showing {(currentPage - 1) * PAGE_SIZE + 1}–
             {Math.min(currentPage * PAGE_SIZE, totalCount)} of {totalCount}{" "}
             {searchQuery ? "matching " : ""}interviews

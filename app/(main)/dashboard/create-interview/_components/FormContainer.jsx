@@ -248,7 +248,7 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
         {/* File upload section */}
         <div>
           <h2 className="text-sm font-medium mb-1">
-            Auto-fill from Resume / JD
+            Auto-fill from Job Description
           </h2>
           <input
             ref={fileInputRef}

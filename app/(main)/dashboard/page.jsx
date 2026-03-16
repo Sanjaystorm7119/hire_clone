@@ -1,17 +1,23 @@
 import React from "react";
-// import Welcome from "./_components/Welcome";
-import CreateOptions from "./_components/CreateOptions";
 import LatestInterviewsList from "./_components/LatestInterviewsList";
+import DashboardStats from "./_components/DashboardStats";
 
-function Dashboard() {
+export default function Dashboard() {
   return (
-    <div className="">
-      {/* <Welcome /> */}
-      <h2 className="my-3 font-bold text-2xl">Dashboard</h2>
-      <CreateOptions />
+    <div>
+      {/* ── Page header ── */}
+      <div className="mb-5">
+        <h1 className="text-[20px] font-bold text-gray-900 leading-none">Dashboard</h1>
+        <p className="text-[13px] text-gray-500 mt-1">
+          Your AI recruiting pipeline at a glance.
+        </p>
+      </div>
+
+      {/* ── Metric cards ── */}
+      <DashboardStats />
+
+      {/* ── Recent Interviews ── */}
       <LatestInterviewsList />
     </div>
   );
 }
-
-export default Dashboard;

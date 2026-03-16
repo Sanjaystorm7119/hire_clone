@@ -13,11 +13,12 @@ import React, { useContext, useState, useEffect } from "react";
 import { Input } from "../../../../../frontend/components/ui/input";
 import { Button } from "../../../../../frontend/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { supabase } from "../../../../../lib/supabase";
 
 function InterviewLink({ interviewId, formData }) {
-
+  const router = useRouter();
   const [questionCount, setQuestionCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const hostUrl = process.env.NEXT_PUBLIC_HOST_URL ?? "";
@@ -153,12 +154,14 @@ function InterviewLink({ interviewId, formData }) {
             <ArrowLeft /> Back
           </Button>
         </Link>
-        <Link href={"/dashboard/create-interview"}>
-          <Button>
-            <Plus />
-            Add interview
-          </Button>
-        </Link>
+        <Button
+          onClick={() =>
+            router.push(`/dashboard/create-interview?new=${Date.now()}`)
+          }
+        >
+          <Plus />
+          Add interview
+        </Button>
       </div>
     </div>
   );

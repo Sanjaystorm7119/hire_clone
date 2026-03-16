@@ -1,14 +1,15 @@
 "use client";
 import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Progress from "../../../../frontend/components/ui/progress";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, Suspense } from "react";
 import FormContainer from "./_components/FormContainer";
 import QuestionListComponent from "./_components/QuestionList";
 import { toast } from "sonner";
 import InterviewLink from "./_components/InterviewLink";
 import { useUser } from "@clerk/nextjs";
-function CreateInterview() {
+
+function CreateInterviewInner() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({});
@@ -19,7 +20,6 @@ function CreateInterview() {
   const onHandleInputChange = useCallback((field, value) => {
     setFormData((prev) => {
       const newData = { ...prev, [field]: value };
-      // console.log("Updated form data:", newData); //  console.log to show current data
       return newData;
     });
   }, []); // Empty dependency array as we are using functional update
@@ -29,7 +29,6 @@ function CreateInterview() {
       toast("add credits , please contact admin");
       return;
     }
-    // if (user) console.log("Current formData:", formData);
     if (
       !formData?.jobPosition ||
       !formData?.jobDescription ||
@@ -47,14 +46,14 @@ function CreateInterview() {
     setInterview_Id(interviewId);
     setStep(step + 1);
   };
+
   return (
     <div className="mt-5 p-2.5 bg-white rounded-2xl py-2.5">
-      <div className="flex gap-2 items-center  ">
+      <div className="flex gap-2 items-center">
         <ArrowLeft onClick={() => router.back()} className="cursor-pointer" />
         <h2 className="font-bold text-2xl">Create new Interview</h2>
       </div>
       <Progress value={step * 33.33} className="my-5" />
-      {/* {if(step==1) ? <FormContainer onHandleInputChange={onHandleInputChange} /> : step==2?<QuestionList/>:null} */}
       {step === 1 ? (
         <FormContainer
           onHandleInputChange={onHandleInputChange}
@@ -74,4 +73,19 @@ function CreateInterview() {
   );
 }
 
-export default CreateInterview;
+// Reads the ?new= param and uses it as a key so CreateInterviewInner fully
+// remounts (resetting all state) whenever "New Interview" or "Add interview"
+// is clicked from an existing session.
+function CreateInterviewWithKey() {
+  const searchParams = useSearchParams();
+  const sessionKey = searchParams.get("new") ?? "init";
+  return <CreateInterviewInner key={sessionKey} />;
+}
+
+export default function CreateInterview() {
+  return (
+    <Suspense>
+      <CreateInterviewWithKey />
+    </Suspense>
+  );
+}
