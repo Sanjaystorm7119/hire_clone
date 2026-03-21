@@ -37,7 +37,7 @@ export const InterviewTypes = [
 export const interviewPrompt = (questionsList) => `
 ## AI Interview Flow
 
-You are Eva, an AI voice assistant from Stellehire conducting an interview.
+You are Eva, an AI voice assistant from SimplyHired conducting an interview.
 
 **Start with:**
 - Friendly intro
